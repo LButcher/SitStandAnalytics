@@ -1,8 +1,11 @@
 import pandas as pd
 
+#How much movement is considered to be the same value
+tolerance = 4
+
 #Goes through a given dataframe and filters out 'noise' values.
     # Noise defined by repeated switching between values or extreme values
-def cleanValues(df):
+def cleanFlippingValues(df):
     previousRow = None
     rowsToDrop = []
     for row in df.iterrows():
@@ -12,7 +15,7 @@ def cleanValues(df):
         
         if(previousRow!=None):
             #compare the new measured height to the old recorded height of the previous row
-            if(abs(row[1][3]-previousRow[1][2])<3):
+            if(abs(row[1][3]-previousRow[1][2])<tolerance):
                 if(previousRow[0] not in rowsToDrop):
                     rowsToDrop.append(previousRow[0])
                 if(row[0] not in rowsToDrop):
@@ -22,6 +25,21 @@ def cleanValues(df):
                 rowsToDrop.append(row[0])
         
         previousRow = row
+    df.drop(rowsToDrop,inplace=True)
+
+def cleanSmallMovements(df):
+    previousRow = None
+    rowsToDrop=[]
+    for row in df.iterrows():
+        prevHeight = row[1][3]
+        currentHeight = row[1][3]
+
+        if(previousRow!=None):
+            if(abs(prevHeight-currentHeight)<tolerance and previousRow[0] not in rowsToDrop):
+                rowsToDrop.append(previousRow[0])
+                
+        previousRow = row
+    print(rowsToDrop)
     df.drop(rowsToDrop,inplace=True)
     
 #Reads CSV into a dataframe
@@ -41,10 +59,12 @@ for desk in dataFrames:
 
 #Clean data in each dataframe
 for desk in dataFrames:
-    cleanValues(dataFrames[desk])
+    cleanFlippingValues(dataFrames[desk])
+    cleanSmallMovements(dataFrames[desk])
 
 #Output the cleaned dataframes
-print(dataFrames)
+print((dataFrames.keys()))
+print(dataFrames['DC:4F:22:19:9B:C8'])
     
 
 
