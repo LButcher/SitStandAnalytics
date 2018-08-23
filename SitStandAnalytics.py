@@ -1,4 +1,5 @@
 import pandas as pd
+import requests as request
 
 #How much movement is considered to be the same value
 tolerance = 4
@@ -31,11 +32,10 @@ def cleanSmallMovements(df):
     previousRow = None
     rowsToDrop=[]
     for row in df.iterrows():
-        prevHeight = row[1][3]
         currentHeight = row[1][3]
 
         if(previousRow!=None):
-            if(abs(prevHeight-currentHeight)<tolerance and previousRow[0] not in rowsToDrop):
+            if(abs(previousRow[1][3]-currentHeight)<tolerance and previousRow[0] not in rowsToDrop):
                 rowsToDrop.append(previousRow[0])
                 
         previousRow = row
@@ -60,18 +60,34 @@ for desk in dataFrames:
 #Clean data in each dataframe
 for desk in dataFrames:
     cleanFlippingValues(dataFrames[desk])
-    cleanSmallMovements(dataFrames[desk])
+    #cleanSmallMovements(dataFrames[desk])
 
 #Output the cleaned dataframes
-print((dataFrames.keys()))
-print(dataFrames['DC:4F:22:19:9B:C8'])
+#print((dataFrames.keys()))
+#print(dataFrames['DC:4F:22:19:8E:8A'])
+
+mainDF = {0: [],
+          1: [],
+          2: [],
+          3: []}
+
+oldDF = pd.DataFrame()
+for desk in dataFrames:
+    #for key in mainDF.keys():
+    #    mainDF[key].append(dataFrames[desk][key])
+    
+    oldDF = pd.concat([oldDF,dataFrames[desk]],axis=0)
+
+    
+    #print(dataFrames[desk])
+    #print("                                     ")
     
 
+print(oldDF)
 
-
-    
 #Export to a CSV file (replace, not append)
-
+r = request.post("http://99.231.14.167/testPost",{'df':oldDF.to_json()})
+print(r.status_code, r.reason)
 
 
 
